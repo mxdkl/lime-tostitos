@@ -1,3 +1,7 @@
+mod mmu;
+
+
 fn main() {
-    println!("Hello, world!");
+    let mem = mmu::Memory::new(100);
+    println!("{:?}", mem);
 }
