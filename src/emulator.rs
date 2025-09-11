@@ -12,11 +12,13 @@ struct RType {  // bits:
 
 impl From<u32> for RType {
     fn from(ins: u32) -> Self {
-        rd:     ((ins >> 7)  & 0b11111) as u8,
-        funct3: ((ins >> 12) & 0b111) as u8,
-        rs1:    ((ins >> 15) & 0b11111) as u8,
-        rs2:    ((ins >> 20) & 0b11111) as u8,
-        funct7:  (ins >> 25) as u8,
+        RType {
+            rd:     ((ins >> 7)  & 0b11111) as u8,
+            funct3: ((ins >> 12) & 0b111) as u8,
+            rs1:    ((ins >> 15) & 0b11111) as u8,
+            rs2:    ((ins >> 20) & 0b11111) as u8,
+            funct7:  (ins >> 25) as u8,
+        }
     }
 }
 
@@ -30,10 +32,12 @@ struct IType {    // bits:
 
 impl From<u32> for IType {
     fn from(ins: u32) -> Self {
-        rd:     ((ins >> 7)  & 0b11111) as u8,
-        funct3: ((ins >> 12) & 0b111) as u8,
-        rs1:    ((ins >> 15) & 0b11111) as u8,
-        imm110:  (ins >> 20) as u16,
+        IType {
+            rd:     ((ins >> 7)  & 0b11111) as u8,
+            funct3: ((ins >> 12) & 0b111) as u8,
+            rs1:    ((ins >> 15) & 0b11111) as u8,
+            imm110:  (ins >> 20) as u16,
+        }
     }
 }
 
@@ -48,11 +52,13 @@ struct SType {  // bits:
 
 impl From<u32> for SType {
     fn from(ins: u32) -> Self {
-        imm40:  ((ins >> 7)  & 0b11111) as u8,
-        funct3: ((ins >> 12) & 0b111) as u8,
-        rs1:    ((ins >> 15) & 0b11111) as u8,
-        rs2:    ((ins >> 20) & 0b11111) as u8,
-        imm115:  (ins >> 25) as u8,
+        SType {
+            imm40:  ((ins >> 7)  & 0b11111) as u8,
+            funct3: ((ins >> 12) & 0b111) as u8,
+            rs1:    ((ins >> 15) & 0b11111) as u8,
+            rs2:    ((ins >> 20) & 0b11111) as u8,
+            imm115:  (ins >> 25) as u8,
+        }
     }
 }
 
@@ -67,11 +73,13 @@ struct BType {    // bits
 
 impl From<u32> for BType {
     fn from(ins: u32) -> Self {
-        imm4111:   ((ins >> 7)  & 0b11111) as u8,
-        funct3:    ((ins >> 12) & 0b111) as u8,
-        rs1:       ((ins >> 15) & 0b11111) as u8,
-        rs2:       ((ins >> 20) & 0b11111) as u8,
-        imm12105:   (ins >> 25) as u8,
+        BType {
+            imm4111:   ((ins >> 7)  & 0b11111) as u8,
+            funct3:    ((ins >> 12) & 0b111) as u8,
+            rs1:       ((ins >> 15) & 0b11111) as u8,
+            rs2:       ((ins >> 20) & 0b11111) as u8,
+            imm12105:   (ins >> 25) as u8,
+        }
     }
 }
  
@@ -82,22 +90,26 @@ struct UType {    // bits
 }
 
 impl From<u32> for UType {
-    fn from(ins: 32) -> Self {
-        rd:      ((ins >> 7) & 0b11111) as u8,
-        imm3112:  (ins >> 12) as u32,
+    fn from(ins: u32) -> Self {
+        UType {
+            rd:      ((ins >> 7) & 0b11111) as u8,
+            imm3112:  (ins >> 12) as u32,
+        }
     }
 }
 
 #[derive(Debug)]
-struct JType {          // bits
-    rd:             u8, //  7 - 11
-    imm20101111912: u8, // 12 - 31
+struct JType {           // bits
+    rd:             u8,  //  7 - 11
+    imm20101111912: u32, // 12 - 31
 }
 
 impl From<u32> for JType {
-    fn from(ins: 32) -> Self {
-        rd:             ((ins >> 7) & 0b11111) as u8,
-        imm20101111912:  (ins >> 12) as u32,
+    fn from(ins: u32) -> Self {
+        JType { 
+            rd:             ((ins >> 7) & 0b11111) as u8,
+            imm20101111912:  (ins >> 12) as u32,
+        }
     }
 }
 
