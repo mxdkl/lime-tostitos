@@ -1,7 +1,8 @@
-mod mmu;
+pub mod emulator;
+pub mod mmu;
 
 
 fn main() {
-    let mem = mmu::Memory::new(100);
-    println!("{:?}", mem);
+    let emu = emulator::Interpreter::new();
+    println!("{:?}", emu);
 }
