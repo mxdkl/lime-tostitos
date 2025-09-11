@@ -10,7 +10,7 @@ struct RType {  // bits:
     funct7: u8, // 25 - 31
 }
 
-impl From<u32> for Rtype {
+impl From<u32> for RType {
     fn from(ins: u32) -> Self {
         rd:     ((ins >> 7)  & 0b11111) as u8,
         funct3: ((ins >> 12) & 0b111) as u8,
@@ -28,7 +28,7 @@ struct IType {    // bits:
     imm110:  u16, // 20 - 31
 }
 
-impl From<u32> for Itype {
+impl From<u32> for IType {
     fn from(ins: u32) -> Self {
         rd:     ((ins >> 7)  & 0b11111) as u8,
         funct3: ((ins >> 12) & 0b111) as u8,
@@ -46,7 +46,7 @@ struct SType {  // bits:
     imm115: u8, // 25 - 31
 }
 
-impl From<u32> for Stype {
+impl From<u32> for SType {
     fn from(ins: u32) -> Self {
         imm40:  ((ins >> 7)  & 0b11111) as u8,
         funct3: ((ins >> 12) & 0b111) as u8,
@@ -65,7 +65,7 @@ struct BType {    // bits
     imm12105: u8, // 25 - 31
 }
 
-impl From<u32> for Btype {
+impl From<u32> for BType {
     fn from(ins: u32) -> Self {
         imm4111:   ((ins >> 7)  & 0b11111) as u8,
         funct3:    ((ins >> 12) & 0b111) as u8,
@@ -81,7 +81,7 @@ struct UType {    // bits
     imm3112: u32, // 12 - 31
 }
 
-impl From<u32> for Utype {
+impl From<u32> for UType {
     fn from(ins: 32) -> Self {
         rd:      ((ins >> 7) & 0b11111) as u8,
         imm3112:  (ins >> 12) as u32,
@@ -94,7 +94,7 @@ struct JType {          // bits
     imm20101111912: u8, // 12 - 31
 }
 
-impl From<u32> for Jtype {
+impl From<u32> for JType {
     fn from(ins: 32) -> Self {
         rd:             ((ins >> 7) & 0b11111) as u8,
         imm20101111912:  (ins >> 12) as u32,
@@ -127,13 +127,7 @@ impl Interpreter {
     
     fn instructionDecode(self, ins: u32) -> Some() {
         let opcode = ins & 0b111111;
-
-        // LUI
-        if opcode == 0b0110111 {
-            self.lui(ins)
-        }
         
-
     }
 
 }
