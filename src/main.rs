@@ -4,5 +4,5 @@ pub mod mmu;
 
 fn main() {
     let emu = emulator::Interpreter::new();
-    println!("{:?}", emu);
+    emu.instruction_decode(0b11111111000000010000000100010011u32);
 }

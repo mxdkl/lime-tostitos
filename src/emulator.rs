@@ -137,13 +137,15 @@ impl Interpreter {
     
     // Private functions
     
-    fn instructionDecode(self, ins: u32) -> Some() {
+    pub fn instruction_decode(self, ins: u32) -> u8 {
         let opcode = ins & 0b111111;
-        
+        let instruct = IType::from(ins);
+        println!("{:?}", instruct);
+
+        0
     }
 
 }
-
 
 
 
