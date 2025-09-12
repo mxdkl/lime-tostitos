@@ -3,6 +3,6 @@ pub mod mmu;
 
 
 fn main() {
-    let emu = emulator::Interpreter::new();
+    let mut emu = emulator::Interpreter::new();
     emu.execute_instruction(0b11111111000000010000000100010011u32);
 }

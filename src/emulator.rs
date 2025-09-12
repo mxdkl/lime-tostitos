@@ -121,8 +121,6 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    // Public functions
-    
     /// Constructor
     pub fn new() -> Self {
         Interpreter {
@@ -134,10 +132,8 @@ impl Interpreter {
         }
     }
 
-    
-    // Private functions
-    
-    pub fn execute_instruction(mut self, ins: u32) -> u8 {
+    /// executes a single instruction 
+    pub fn execute_instruction(&mut self, ins: u32) -> u8 {
         let opcode = ins & 0b111111;
 
         match opcode {
@@ -197,8 +193,9 @@ impl Interpreter {
             0b11100111 => {
                 let ins = IType::from(ins);
             },
-
-            _ => panic!(),
+            
+            // Catch all
+            _ => panic!("**SEGFAULT** UNKNOWN OPCODE"),
 
         }
 
