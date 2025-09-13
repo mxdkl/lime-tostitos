@@ -2,5 +2,6 @@
 
 
 int main() {
-    puts("Hello, World!");
+    char* x = "Hello, world";
+    puts(x);
 }

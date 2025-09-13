@@ -1,5 +1,4 @@
-## Snapshot fuzzer powered by a riscv emulator to allow cross-core scaling
-
+## RISCV 64i Emulator
 
 
 #### Build the riscv toolchain:
