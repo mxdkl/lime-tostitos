@@ -118,10 +118,10 @@ impl From<u32> for JType {
     fn from(ins: u32) -> Self {
 
         let imm20   = ((ins >> 31) & 0x1) << 20;
-        let imm10_1 = ((ins >> 21) & 0x3FF) << 1;
+        let imm101 = ((ins >> 21) & 0x3FF) << 1;
         let imm11   = ((ins >> 20) & 0x1) << 11;
-        let imm19_12= ((ins >> 12) & 0xFF) << 12;
-        let imm_final = sign_extend((imm20 | imm19_12 | imm11 | imm10_1) as u64, 21) as i32;
+        let imm1912= ((ins >> 12) & 0xFF) << 12;
+        let imm_final = sign_extend((imm20 | imm1912 | imm11 | imm101) as u64, 21) as i32;
 
         JType { 
             rd: ((ins >> 7)  & 0b11111) as u8,
@@ -188,12 +188,7 @@ impl Interpreter {
                 let ins = JType::from(ins);
                 println!("{:?}", ins);
                 self.registers[ins.rd as usize] = self.pc.wrapping_add(4);
-                let offset = sign_extend(ins.imm as u64, 20);
-                if (offset >= 0) {
-                    self.pc = self.pc.wrapping_add(offset as u64); 
-                } else {
-                    self.pc = self.pc.wrapping_sub(-offset as u64);
-                }
+                self.pc = self.pc.wrapping_add(ins.imm as u64);
             },
 
             // JALR - IType
@@ -210,6 +205,47 @@ impl Interpreter {
             0b1100011 => {
                 let ins = BType::from(ins);
                 println!("{:?}", ins);
+
+                match ins.funct3 {
+
+                    0b000 => { // BEQ
+                        if self.registers[ins.rs1 as usize] == self.registers[ins.rs2 as usize] {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    0b001 => { // BNE
+                        if self.registers[ins.rs1 as usize] != self.registers[ins.rs2 as usize] {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    0b100 => { // BLT
+                        if (self.registers[ins.rs1 as usize] as i64) < (self.registers[ins.rs2 as usize] as i64) {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    0b101 => { // BGE
+                        if (self.registers[ins.rs1 as usize] as i64) >= (self.registers[ins.rs2 as usize] as i64) {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    0b110 => { // BLTU
+                        if self.registers[ins.rs1 as usize] < self.registers[ins.rs2 as usize] {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    0b111 => { // BGEU
+                        if self.registers[ins.rs1 as usize] >= self.registers[ins.rs2 as usize] {
+                            self.pc = self.pc.wrapping_add(ins.imm as u64);
+                        }
+                    },
+
+                    _ => panic!("at the disco"),
+                }
             },
 
             // LB/LH/LW/LBU/LHU - IType
