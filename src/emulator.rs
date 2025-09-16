@@ -68,10 +68,10 @@ impl From<u32> for SType {
 
 #[derive(Debug)]
 struct BType {    // bits
-    imm:     i32, //  7 - 11
     funct3:   u8, // 12 - 14
     rs1:      u8, // 15 - 19
     rs2:      u8, // 20 - 24
+    imm:     i32, //  7 - 11 ...
 }
 
 impl From<u32> for BType {
@@ -171,16 +171,14 @@ impl Interpreter {
             0b0110111 => {
                 let ins = UType::from(ins);
                 println!("{:?}", ins);
-                self.registers[ins.rd as usize] = ins.imm as u64;
+                self.registers[ins.rd as usize] = (ins.imm as u64) << 12;
             },
 
             // AUIPC - UType
             0b0010111 => {
                 let ins = UType::from(ins);
                 println!("{:?}", ins);
-                self.registers[ins.rd as usize] = self.pc.wrapping_add(
-                    (ins.imm << 12) as u64
-                );
+                self.registers[ins.rd as usize] = self.pc.wrapping_add(ins.imm as u64);
             },
             
             // JAL - JType
@@ -207,43 +205,36 @@ impl Interpreter {
                 println!("{:?}", ins);
 
                 match ins.funct3 {
-
                     0b000 => { // BEQ
                         if self.registers[ins.rs1 as usize] == self.registers[ins.rs2 as usize] {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     0b001 => { // BNE
                         if self.registers[ins.rs1 as usize] != self.registers[ins.rs2 as usize] {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     0b100 => { // BLT
                         if (self.registers[ins.rs1 as usize] as i64) < (self.registers[ins.rs2 as usize] as i64) {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     0b101 => { // BGE
                         if (self.registers[ins.rs1 as usize] as i64) >= (self.registers[ins.rs2 as usize] as i64) {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     0b110 => { // BLTU
                         if self.registers[ins.rs1 as usize] < self.registers[ins.rs2 as usize] {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     0b111 => { // BGEU
                         if self.registers[ins.rs1 as usize] >= self.registers[ins.rs2 as usize] {
                             self.pc = self.pc.wrapping_add(ins.imm as u64);
                         }
                     },
-
                     _ => panic!("at the disco"),
                 }
             },
@@ -252,24 +243,140 @@ impl Interpreter {
             0b0000011 => {
                 let ins = IType::from(ins);
                 println!("{:?}", ins);
+                let addr = self.registers[ins.rs1 as usize].wrapping_add(ins.imm as u64);
+
+                match ins.funct3 {
+                    0b000 => { // LB
+                        let val = self.mem.read8(addr) as i8 as i64 as u64;
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b001 => { // LH
+                        let val = self.mem.read16(addr) as i16 as i64 as u64;
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b010 => { // LW
+                        let val = self.mem.read32(addr) as i32 as i64 as u64;
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b100 => { // LBU
+                        let val = self.mem.read8(addr) as u64;
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b101 => { // LHU
+                        let val = self.mem.read16(addr) as u64;
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    _ => panic!("Invalid load instruction"),
+                }
             },
 
             // SB/SH/SW - SType
             0b0100011 => {
                 let ins = SType::from(ins);
                 println!("{:?}", ins);
+                let addr = self.registers[ins.rs1 as usize].wrapping_add(ins.imm as u64);
+                let val = self.registers[ins.rs2 as usize];
+
+                match ins.funct3 {
+                    0b000 => { // SB
+                        self.mem.write8(addr, val as u8);
+                    },
+                    0b001 => { // SH
+                        self.mem.write16(addr, val as u16);
+                    },
+                    0b010 => { // SW
+                        self.mem.write32(addr, val as u32);
+                    },
+                    _ => panic!("Invalid store instruction"),
+                }
             },
 
             // ADDI/SLTI/SLTIU/XORI/ORI/ANDI/SLLI/SRLI/SRAI- IType
             0b0010011 => {
                 let ins = IType::from(ins);
                 println!("{:?}", ins);
+
+                match ins.funct3 {
+                    0b000 => { // ADDI
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize].wrapping_add(ins.imm as u64);
+                    },
+                    0b010 => { // SLTI
+                        let val = if (self.registers[ins.rs1 as usize] as i64) < (ins.imm as i64) { 1 } else { 0 };
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b011 => { // SLTIU
+                        let val = if self.registers[ins.rs1 as usize] < (ins.imm as u64) { 1 } else { 0 };
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b100 => { // XORI
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] ^ (ins.imm as u64);
+                    },
+                    0b110 => { // ORI
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] | (ins.imm as u64);
+                    },
+                    0b111 => { // ANDI
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] & (ins.imm as u64);
+                    },
+                    0b001 => { // SLLI
+                        let shamt = ins.imm & 0x3F;
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] << shamt;
+                    },
+                    0b101 => { // SRLI/SRAI
+                        let shamt = ins.imm & 0x3F;
+                        if (ins.imm >> 10) & 1 == 0 { // SRLI
+                            self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] >> shamt;
+                        } else { // SRAI
+                            self.registers[ins.rd as usize] = ((self.registers[ins.rs1 as usize] as i64) >> shamt) as u64;
+                        }
+                    },
+                    _ => panic!("Invalid immediate instruction"),
+                }
             },
         
             // ADD/SUB/SLL/SLT/SLTU/XOR/SRL/SRA/OR/AND - RType
             0b0110011 => {
                 let ins = RType::from(ins);
                 println!("{:?}", ins);
+
+                match ins.funct3 {
+                    0b000 => { // ADD/SUB
+                        if ins.funct7 == 0x00 { // ADD
+                            self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize].wrapping_add(self.registers[ins.rs2 as usize]);
+                        } else { // SUB
+                            self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize].wrapping_sub(self.registers[ins.rs2 as usize]);
+                        }
+                    },
+                    0b001 => { // SLL
+                        let shamt = self.registers[ins.rs2 as usize] & 0x3F;
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] << shamt;
+                    },
+                    0b010 => { // SLT
+                        let val = if (self.registers[ins.rs1 as usize] as i64) < (self.registers[ins.rs2 as usize] as i64) { 1 } else { 0 };
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b011 => { // SLTU
+                        let val = if self.registers[ins.rs1 as usize] < self.registers[ins.rs2 as usize] { 1 } else { 0 };
+                        self.registers[ins.rd as usize] = val;
+                    },
+                    0b100 => { // XOR
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] ^ self.registers[ins.rs2 as usize];
+                    },
+                    0b101 => { // SRL/SRA
+                        let shamt = self.registers[ins.rs2 as usize] & 0x3F;
+                        if ins.funct7 == 0x00 { // SRL
+                            self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] >> shamt;
+                        } else { // SRA
+                            self.registers[ins.rd as usize] = ((self.registers[ins.rs1 as usize] as i64) >> shamt) as u64;
+                        }
+                    },
+                    0b110 => { // OR
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] | self.registers[ins.rs2 as usize];
+                    },
+                    0b111 => { // AND
+                        self.registers[ins.rd as usize] = self.registers[ins.rs1 as usize] & self.registers[ins.rs2 as usize];
+                    },
+                    _ => panic!("Invalid register instruction"),
+                }
             },
 
             // FENCE/FENCE.TSO/PAUSE - IType
@@ -282,14 +389,28 @@ impl Interpreter {
             0b1110011 => {
                 let ins = IType::from(ins);
                 println!("{:?}", ins);
+
+                match ins.imm {
+                    0 => { // ECALL
+                        panic!("ECALL - system call");
+                    },
+                    1 => { // EBREAK
+                        panic!("EBREAK - breakpoint");
+                    },
+                    _ => panic!("Invalid system instruction"),
+                }
             },
             
-            // Catch all
             _ => panic!("**SEGFAULT** Bad instruction"),
 
         }
 
         0
+    }
+
+    pub fn run(&mut self) {
+        
+
     }
 
 }

@@ -28,13 +28,78 @@ impl Memory {
         }
     }
 
-    /// Read byte
-    pub fn read_byte(&self, addr: usize) -> Option<u8> {
-        if addr < self.data.len() && self.perms[addr].check(Permission::READ) {
-            Some(self.data[addr])
-        } else {
-            None
+    pub fn read8(&self, addr: u64) -> u8 {
+        let addr = addr as usize;
+        if addr >= self.data.len() {
+            panic!("Memory read out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
         }
+        if !self.perms[addr].check(Permission::READ) {
+            panic!("Memory read permission denied at addr=0x{:x}", addr);
+        }
+        self.data[addr]
+    }
+
+    pub fn read16(&self, addr: u64) -> u16 {
+        let addr = addr as usize;
+        if addr + 1 >= self.data.len() {
+            panic!("Memory read out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
+        }
+        if !self.perms[addr].check(Permission::READ) || !self.perms[addr + 1].check(Permission::READ) {
+            panic!("Memory read permission denied at addr=0x{:x}", addr);
+        }
+        u16::from_le_bytes([self.data[addr], self.data[addr + 1]])
+    }
+
+    pub fn read32(&self, addr: u64) -> u32 {
+        let addr = addr as usize;
+        if addr + 3 >= self.data.len() {
+            panic!("Memory read out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
+        }
+        if !self.perms[addr].check(Permission::READ) || !self.perms[addr + 1].check(Permission::READ) ||
+           !self.perms[addr + 2].check(Permission::READ) || !self.perms[addr + 3].check(Permission::READ) {
+            panic!("Memory read permission denied at addr=0x{:x}", addr);
+        }
+        u32::from_le_bytes([self.data[addr], self.data[addr + 1], self.data[addr + 2], self.data[addr + 3]])
+    }
+
+    pub fn write8(&mut self, addr: u64, val: u8) {
+        let addr = addr as usize;
+        if addr >= self.data.len() {
+            panic!("Memory write out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
+        }
+        if !self.perms[addr].check(Permission::WRITE) {
+            panic!("Memory write permission denied at addr=0x{:x}", addr);
+        }
+        self.data[addr] = val;
+    }
+
+    pub fn write16(&mut self, addr: u64, val: u16) {
+        let addr = addr as usize;
+        if addr + 1 >= self.data.len() {
+            panic!("Memory write out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
+        }
+        if !self.perms[addr].check(Permission::WRITE) || !self.perms[addr + 1].check(Permission::WRITE) {
+            panic!("Memory write permission denied at addr=0x{:x}", addr);
+        }
+        let bytes = val.to_le_bytes();
+        self.data[addr] = bytes[0];
+        self.data[addr + 1] = bytes[1];
+    }
+
+    pub fn write32(&mut self, addr: u64, val: u32) {
+        let addr = addr as usize;
+        if addr + 3 >= self.data.len() {
+            panic!("Memory write out of bounds: addr=0x{:x}, size=0x{:x}", addr, self.data.len());
+        }
+        if !self.perms[addr].check(Permission::WRITE) || !self.perms[addr + 1].check(Permission::WRITE) ||
+           !self.perms[addr + 2].check(Permission::WRITE) || !self.perms[addr + 3].check(Permission::WRITE) {
+            panic!("Memory write permission denied at addr=0x{:x}", addr);
+        }
+        let bytes = val.to_le_bytes();
+        self.data[addr] = bytes[0];
+        self.data[addr + 1] = bytes[1];
+        self.data[addr + 2] = bytes[2];
+        self.data[addr + 3] = bytes[3];
     }
 }
 
