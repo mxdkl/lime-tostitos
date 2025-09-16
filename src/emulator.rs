@@ -77,9 +77,9 @@ struct BType {    // bits
 impl From<u32> for BType {
     fn from(ins: u32) -> Self {
 
-        let imm41 = ((ins >> 7)  & 0b1111);
-        let imm105 = ((ins >> 25)  & 0b111111);
-        let imm11 = ((ins >> 11)  & 0b1);
+        let imm41 = (ins >> 7)  & 0b1111;
+        let imm105 = (ins >> 25)  & 0b111111;
+        let imm11 = (ins >> 11)  & 0b1;
         let imm12 = (ins >> 31) & 0b1;
         let imm_final = (imm12 << 12) | (imm11 << 11) | (imm105 << 5) | (imm41 << 1);
         let imm_final = ((imm_final as i32) << 19) >> 19;
@@ -392,6 +392,7 @@ impl Interpreter {
 
                 match ins.imm {
                     0 => { // ECALL
+                           // TODO: implement syscalls
                         panic!("ECALL - system call");
                     },
                     1 => { // EBREAK
